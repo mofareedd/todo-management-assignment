@@ -12,14 +12,14 @@ import { type AdapterAccount } from "next-auth/adapters";
 
 export const createTable = pgTableCreator((name) => `test_${name}`);
 
-export const tasks = createTable(
+export const tasksTable = createTable(
   "task",
   {
     id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
     name: varchar("name", { length: 256 }),
     createdById: varchar("created_by", { length: 255 })
       .notNull()
-      .references(() => users.id),
+      .references(() => usersTable.id),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
@@ -33,12 +33,13 @@ export const tasks = createTable(
   })
 );
 
-export const users = createTable("user", {
+export const usersTable = createTable("user", {
   id: varchar("id", { length: 255 })
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   name: varchar("name", { length: 255 }),
+  password: varchar("password", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull(),
   emailVerified: timestamp("email_verified", {
     mode: "date",
@@ -47,16 +48,16 @@ export const users = createTable("user", {
   image: varchar("image", { length: 255 }),
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
-  accounts: many(accounts),
+export const usersRelations = relations(usersTable, ({ many }) => ({
+  accounts: many(accountsTable),
 }));
 
-export const accounts = createTable(
+export const accountsTable = createTable(
   "account",
   {
     userId: varchar("user_id", { length: 255 })
       .notNull()
-      .references(() => users.id),
+      .references(() => usersTable.id),
     type: varchar("type", { length: 255 })
       .$type<AdapterAccount["type"]>()
       .notNull(),
@@ -80,11 +81,14 @@ export const accounts = createTable(
   })
 );
 
-export const accountsRelations = relations(accounts, ({ one }) => ({
-  user: one(users, { fields: [accounts.userId], references: [users.id] }),
+export const accountsRelations = relations(accountsTable, ({ one }) => ({
+  user: one(usersTable, {
+    fields: [accountsTable.userId],
+    references: [usersTable.id],
+  }),
 }));
 
-export const sessions = createTable(
+export const sessionsTable = createTable(
   "session",
   {
     sessionToken: varchar("session_token", { length: 255 })
@@ -92,7 +96,7 @@ export const sessions = createTable(
       .primaryKey(),
     userId: varchar("user_id", { length: 255 })
       .notNull()
-      .references(() => users.id),
+      .references(() => usersTable.id),
     expires: timestamp("expires", {
       mode: "date",
       withTimezone: true,
@@ -103,11 +107,14 @@ export const sessions = createTable(
   })
 );
 
-export const sessionsRelations = relations(sessions, ({ one }) => ({
-  user: one(users, { fields: [sessions.userId], references: [users.id] }),
+export const sessionsRelations = relations(sessionsTable, ({ one }) => ({
+  user: one(usersTable, {
+    fields: [sessionsTable.userId],
+    references: [usersTable.id],
+  }),
 }));
 
-export const verificationTokens = createTable(
+export const verificationTokensTable = createTable(
   "verification_token",
   {
     identifier: varchar("identifier", { length: 255 }).notNull(),
