@@ -12,15 +12,6 @@ interface TodoStore {
   moveTask: (activeId: UniqueIdentifier, overId: UniqueIdentifier) => void;
 }
 
-let storeInitialized = false;
-
-export const createTasksStore = (initialTasks: TaskType[]) => {
-  if (!storeInitialized) {
-    useTasksStore.setState({ tasks: initialTasks });
-    storeInitialized = true;
-  }
-};
-
 export const useTasksStore = create<TodoStore>((set, get) => ({
   tasks: [],
 
