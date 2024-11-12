@@ -8,4 +8,10 @@ export const loginSchema = z.object({
     .max(30),
 });
 
+export const todoSchema = z.object({
+  name: z.string(),
+  createdById: z.string(),
+});
+
 export type LoginSchemaInput = z.infer<typeof loginSchema>;
+export type TodoSchemaInput = z.infer<typeof todoSchema>;

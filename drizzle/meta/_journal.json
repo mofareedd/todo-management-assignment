@@ -22,6 +22,20 @@
       "when": 1731298559834,
       "tag": "0002_familiar_silver_centurion",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1731356818815,
+      "tag": "0003_cooing_mastermind",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1731375009471,
+      "tag": "0004_clean_red_shift",
+      "breakpoints": true
     }
   ]
 }

@@ -9,6 +9,7 @@ import {
   verificationTokensTable,
 } from "../db/schema";
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { getUserById } from "@/lib/auth";
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db, {
@@ -20,13 +21,17 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   secret: process.env.AUTH_SECRET,
   callbacks: {
-    session: ({ session, user, token }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    session: ({ session, token }) => {
+      if (token.sub && session.user) {
+        session.user.id = token.sub;
+      }
+
+      return session;
+    },
+
+    jwt: async ({ token, user }) => {
+      return token;
+    },
   },
   ...authConfig,
 });
