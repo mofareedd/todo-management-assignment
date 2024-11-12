@@ -22,7 +22,7 @@ export async function createAccount(input: SignupSchemaInput) {
     password: hashedPassword,
   });
 
-  return { success: "Email sent!" };
+  return { success: "Account created!" };
 }
 
 export async function login(input: LoginSchemaInput) {

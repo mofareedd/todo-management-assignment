@@ -1,0 +1,1 @@
+ALTER TABLE "todo_user" ADD CONSTRAINT "todo_user_email_unique" UNIQUE("email");

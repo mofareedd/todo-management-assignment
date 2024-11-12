@@ -3,8 +3,7 @@
 import { TodoSchemaInput } from "@/schemas";
 import { db } from "@/server/db";
 import { tasksTable } from "@/server/db/schema";
-import { and, eq, sql } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
+import { and, eq, not, sql } from "drizzle-orm";
 
 export async function getTodos(id: string) {
   try {
@@ -29,7 +28,12 @@ export async function createTodo(input: TodoSchemaInput) {
   // revalidatePath("/dashboard");
 }
 export async function deleteTodo(id: string) {
-  await db.delete(tasksTable).where(eq(tasksTable.id, id));
+  return await db.delete(tasksTable).where(eq(tasksTable.id, id));
+}
 
-  // revalidatePath("/dashboard");
+export async function taskToggle(id: string) {
+  return await db
+    .update(tasksTable)
+    .set({ completed: not(tasksTable.completed) })
+    .where(eq(tasksTable.id, id));
 }

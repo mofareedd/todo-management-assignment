@@ -3,8 +3,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -14,11 +12,9 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { todoSchema, TodoSchemaInput } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Command } from "lucide-react";
@@ -48,13 +44,17 @@ export function CreateTodo({ currentUser }: CreateTodoProps) {
   });
 
   async function onSubmit(values: TodoSchemaInput) {
-    console.log(values);
-    // startTransition(() => {
-    const newTodo = await createTodo(values);
-    addTask(newTodo);
-    setOpen(false);
-    router.refresh();
-    // });
+    startTransition(() => {
+      createTodo(values)
+        .then((data) => {
+          addTask(data);
+          setOpen(false);
+          router.refresh();
+        })
+        .catch((e) => {
+          toast.error("Failed to create new task");
+        });
+    });
   }
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -71,6 +71,7 @@ export function CreateTodo({ currentUser }: CreateTodoProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
+          data-testId="create-todo"
           variant="secondary"
           className="w-full flex items-center justify-between p-5 border-2 border-dashed"
         >

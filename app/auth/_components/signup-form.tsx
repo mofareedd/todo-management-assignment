@@ -25,6 +25,7 @@ import { useForm } from "react-hook-form";
 import { createAccount } from "../actions";
 import { toast } from "sonner";
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 const signupSchema = z.object({
   name: z
@@ -41,6 +42,7 @@ const signupSchema = z.object({
 export type SignupSchemaInput = z.infer<typeof signupSchema>;
 export function SignupForm() {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
   const form = useForm<SignupSchemaInput>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -57,7 +59,8 @@ export function SignupForm() {
           if (data.error) {
             toast.error(data.error);
           } else {
-            toast.success(data.sucess);
+            toast.success(data.success);
+            router.push("/auth/login");
           }
         })
         .catch((e) => {

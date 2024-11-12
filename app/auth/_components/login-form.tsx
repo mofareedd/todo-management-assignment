@@ -48,8 +48,8 @@ export function LoginForm() {
   return (
     <Card className="mx-auto w-[576px] border-none shadow-none">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-4xl font-normal">Signup</CardTitle>
-        <CardDescription>Signup and start using app</CardDescription>
+        <CardTitle className="text-4xl font-normal">Login</CardTitle>
+        <CardDescription>Login and start using app</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -94,6 +94,12 @@ export function LoginForm() {
             <div className="">
               <Link href="/auth/login" className="text-sm hover:underline">
                 Forgot your password?
+              </Link>
+            </div>
+            <div className="text-sm ">
+              <span>Dont have an acconut? </span>
+              <Link href="/auth/signup" className="hover:underline">
+                signup?
               </Link>
             </div>
           </form>

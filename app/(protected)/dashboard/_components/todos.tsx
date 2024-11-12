@@ -1,11 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import dayjs from "dayjs";
 import { LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreateTodo } from "./create-todo";
 
-import { TodoItem } from "./todo-item";
+import { TodoItem, TodoItemLoading } from "./todo-item";
 import {
   closestCorners,
   DndContext,
@@ -19,7 +19,8 @@ import {
 } from "@dnd-kit/sortable";
 import { User } from "next-auth";
 import { TaskType } from "@/server/db/schema";
-import { createTasksStore, useTasksStore } from "../hooks/useTasks";
+import { useTasksStore } from "../hooks/useTasks";
+import { useIsClient } from "../hooks/useIsClient";
 interface Todo {
   id: string;
   text: string;
@@ -30,8 +31,8 @@ interface TodosProps {
   tasks: TaskType[];
 }
 export default function Todos({ tasks, currentUser }: TodosProps) {
-  createTasksStore(tasks);
   const { tasks: todos, moveTask, setTasks } = useTasksStore();
+  const isClient = useIsClient();
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -41,9 +42,9 @@ export default function Todos({ tasks, currentUser }: TodosProps) {
     moveTask(active.id, over.id);
   };
 
-  // useEffect(() => {
-  //   setTasks(tasks);
-  // }, [tasks, setTasks]);
+  useEffect(() => {
+    setTasks(tasks);
+  }, [tasks, setTasks]);
 
   return (
     <div className="space-y-4">
@@ -70,9 +71,25 @@ export default function Todos({ tasks, currentUser }: TodosProps) {
           onDragEnd={handleDragEnd}
         >
           <SortableContext items={todos} strategy={verticalListSortingStrategy}>
-            {todos.map((t, index) => {
-              return <TodoItem todo={t} key={index} />;
-            })}
+            {todos.length > 0
+              ? todos.map((t, index) => {
+                  return <TodoItem todo={t} key={index} />;
+                })
+              : null}
+
+            {todos.length === 0 && isClient ? (
+              <div className="py-4 text-center">
+                <p>Not found</p>
+              </div>
+            ) : null}
+
+            {!isClient
+              ? Array.from({ length: 3 })
+                  .fill(2)
+                  .map((x, i) => {
+                    return <TodoItemLoading key={i} />;
+                  })
+              : null}
           </SortableContext>
         </DndContext>
         <CreateTodo currentUser={currentUser} />
