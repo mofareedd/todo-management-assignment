@@ -50,6 +50,13 @@
       "when": 1731449816328,
       "tag": "0006_chubby_wasp",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1731622510242,
+      "tag": "0007_easy_jazinda",
+      "breakpoints": true
     }
   ]
 }

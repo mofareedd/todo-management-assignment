@@ -1,0 +1,1 @@
+ALTER TABLE "todo_task" ADD COLUMN "order" integer DEFAULT 0;

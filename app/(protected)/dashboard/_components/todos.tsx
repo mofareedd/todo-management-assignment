@@ -1,50 +1,54 @@
 "use client";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useOptimistic, useTransition } from "react";
 import dayjs from "dayjs";
-import { LayoutGrid } from "lucide-react";
+import { GripVertical, LayoutGrid, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CreateTodo } from "./create-todo";
+import {
+  DragDropContext,
+  Draggable,
+  Droppable,
+  DropResult,
+} from "@hello-pangea/dnd";
 
-import { TodoItem, TodoItemLoading } from "./todo-item";
-import {
-  closestCorners,
-  DndContext,
-  DragEndEvent,
-  UniqueIdentifier,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
 import { User } from "next-auth";
 import { TaskType } from "@/server/db/schema";
-import { useTasksStore } from "../hooks/useTasks";
-import { useIsClient } from "../hooks/useIsClient";
-interface Todo {
-  id: string;
-  text: string;
-}
+import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
+import { deleteTodo, swapTasksAction, taskToggle } from "../../actions";
+import { toast } from "sonner";
 
 interface TodosProps {
   currentUser: User;
   tasks: TaskType[];
 }
 export default function Todos({ tasks, currentUser }: TodosProps) {
-  const { tasks: todos, moveTask, setTasks } = useTasksStore();
-  const isClient = useIsClient();
+  const [isPending, startTransition] = useTransition();
+  const [optimisticState, swapOptimistic] = useOptimistic(
+    tasks,
+    (state, { sourceTaskId, destinationTaskId }) => {
+      const sourceIndex = state.findIndex((task) => task.id === sourceTaskId);
+      const destinationIndex = state.findIndex(
+        (task) => task.id === destinationTaskId
+      );
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+      const newState = [...state];
+      newState[sourceIndex] = state[destinationIndex];
+      newState[destinationIndex] = state[sourceIndex];
 
-    if (!over?.id || active.id === over.id) return;
+      return newState;
+    }
+  );
 
-    moveTask(active.id, over.id);
+  const onDragEnd = async (result: DropResult) => {
+    const sourceTaskId = result.draggableId;
+    const destinationTaskId = tasks[result.destination!.index].id;
+    startTransition(() => {
+      swapOptimistic({ sourceTaskId, destinationTaskId });
+    });
+    await swapTasksAction(sourceTaskId, destinationTaskId);
   };
-
-  useEffect(() => {
-    setTasks(tasks);
-  }, [tasks, setTasks]);
 
   return (
     <div className="space-y-4">
@@ -64,34 +68,81 @@ export default function Todos({ tasks, currentUser }: TodosProps) {
       </div>
 
       <div className="space-y-2">
-        <p>🗓️ Today {todos.length}</p>
+        <p>🗓️ Today {tasks.length}</p>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId={"tasks"}>
+            {(droppableProvided) => (
+              <ul
+                ref={droppableProvided.innerRef}
+                {...droppableProvided.droppableProps}
+              >
+                {optimisticState.map((task, idx) => {
+                  return (
+                    <Draggable draggableId={task.id} key={task.id} index={idx}>
+                      {(provided) => (
+                        <Card
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                        >
+                          <CardContent className="p-4 flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                {...provided.dragHandleProps}
+                                variant={"ghost"}
+                                className="cursor-grab"
+                              >
+                                <GripVertical className="h-5 w-5 text-gray-400" />
+                              </Button>
+                              <Checkbox
+                                disabled={isPending}
+                                id="terms"
+                                className=""
+                                checked={!!task.completed}
+                                onCheckedChange={(checked) => {
+                                  startTransition(() => {
+                                    taskToggle(task.id).then(() => {
+                                      toast.success(
+                                        task.completed
+                                          ? "Updated the task to be uncompleted"
+                                          : "Updated the task to be completed"
+                                      );
+                                    });
+                                  });
+                                }}
+                              />
+                              <span
+                                className={cn(
+                                  "px-2",
+                                  task.completed ? "line-through" : ""
+                                )}
+                              >
+                                {task.name}
+                              </span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                startTransition(() => {
+                                  deleteTodo(task.id);
+                                });
+                              }}
+                              disabled={isPending}
+                            >
+                              <Trash2 className="h-5 w-5" />
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </Draggable>
+                  );
+                })}
+                {droppableProvided.placeholder}
+              </ul>
+            )}
+          </Droppable>
+        </DragDropContext>
 
-        <DndContext
-          collisionDetection={closestCorners}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext items={todos} strategy={verticalListSortingStrategy}>
-            {todos.length > 0
-              ? todos.map((t, index) => {
-                  return <TodoItem todo={t} key={index} />;
-                })
-              : null}
-
-            {todos.length === 0 && isClient ? (
-              <div className="py-4 text-center">
-                <p>Not found</p>
-              </div>
-            ) : null}
-
-            {!isClient
-              ? Array.from({ length: 3 })
-                  .fill(2)
-                  .map((x, i) => {
-                    return <TodoItemLoading key={i} />;
-                  })
-              : null}
-          </SortableContext>
-        </DndContext>
         <CreateTodo currentUser={currentUser} />
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { InferSelectModel, sql } from "drizzle-orm";
 import {
   boolean,
+  integer,
   pgTableCreator,
   primaryKey,
   timestamp,
@@ -14,6 +15,7 @@ export const tasksTable = createTable("task", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name", { length: 256 }),
   completed: boolean().default(false),
+  order: integer("order").default(0),
   createdById: varchar("created_by", { length: 255 })
     .notNull()
     .references(() => usersTable.id),

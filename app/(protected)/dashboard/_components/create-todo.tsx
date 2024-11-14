@@ -25,7 +25,6 @@ import { createTodo } from "../../actions";
 import { User } from "next-auth";
 import { toast } from "sonner";
 import { IconSpinner } from "@/components/spinner";
-import { useTasksStore } from "../hooks/useTasks";
 
 interface CreateTodoProps {
   currentUser: User;
@@ -33,7 +32,6 @@ interface CreateTodoProps {
 export function CreateTodo({ currentUser }: CreateTodoProps) {
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const { addTask } = useTasksStore();
   const router = useRouter();
   const form = useForm<TodoSchemaInput>({
     resolver: zodResolver(todoSchema),
@@ -47,7 +45,6 @@ export function CreateTodo({ currentUser }: CreateTodoProps) {
     startTransition(() => {
       createTodo(values)
         .then((data) => {
-          addTask(data);
           setOpen(false);
           router.refresh();
         })
