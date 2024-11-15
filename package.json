@@ -9,7 +9,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "pnpm playwright test --project=chromium",
+    "test:ui": "pnpm playwright test --ui"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
@@ -23,6 +25,7 @@
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "cmdk": "1.0.0",
     "dayjs": "^1.11.13",
     "drizzle-orm": "^0.36.1",
     "lucide-react": "^0.456.0",

@@ -2,36 +2,45 @@
 
 import { TodoSchemaInput } from "@/schemas";
 import { db } from "@/server/db";
-import { tasksTable } from "@/server/db/schema";
+import {
+  taskAssignments,
+  tasksTable,
+  TaskWithUser,
+  usersTable,
+} from "@/server/db/schema";
 import { and, desc, eq, max, not, or, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-export async function getTodos(id: string) {
-  try {
-    return await db
-      .select()
-      .from(tasksTable)
-      .where(
-        and(
-          eq(tasksTable.createdById, id),
-          eq(sql`DATE(${tasksTable.createdAt})`, sql`CURRENT_DATE`)
-        )
-      )
-      .orderBy(desc(tasksTable.order));
-  } catch (e: any) {
-    return [];
-  }
+export async function getTodos(id: string): Promise<TaskWithUser[]> {
+  return await db.query.tasksTable.findMany({
+    with: {
+      author: true,
+      assigned: {
+        with: {
+          user: true,
+        },
+      },
+    },
+    orderBy: desc(tasksTable.order),
+  });
 }
 
-export async function createTodo(input: TodoSchemaInput) {
+export async function createTodo(input: TodoSchemaInput, userIds: string[]) {
   const [{ maxOrder }] = await db
     .select({ maxOrder: max(tasksTable.order) })
     .from(tasksTable);
-  return await db
+  const [newTask] = await db
     .insert(tasksTable)
-    .values({ ...input, order: (maxOrder ?? 0) + 1 });
+    .values({ ...input, order: (maxOrder ?? 0) + 1 })
+    .returning();
 
-  // revalidatePath("/dashboard");
+  if (!newTask) {
+    throw new Error("Failed to create a task");
+  }
+
+  await assignUsersToTask(newTask.id, userIds);
+
+  revalidatePath("/dashboard");
 }
 export async function deleteTodo(id: string) {
   await db.delete(tasksTable).where(eq(tasksTable.id, id));
@@ -83,4 +92,23 @@ export async function swapTasksAction(
     .where(eq(tasksTable.id, destinationTaskId));
 
   revalidatePath("/dashboard");
+}
+
+export async function getAllUsers(currentUserId: string) {
+  return await db.query.usersTable.findMany({
+    where: not(eq(usersTable.id, currentUserId)),
+  });
+}
+
+export async function assignUsersToTask(taskId: string, userIds: string[]) {
+  // First, delete existing assignments for the task
+
+  await db.delete(taskAssignments).where(eq(taskAssignments.task_id, taskId));
+
+  const assignments = userIds.map((userId) => ({
+    task_id: taskId,
+    user_id: userId,
+  }));
+
+  return await db.insert(taskAssignments).values(assignments);
 }

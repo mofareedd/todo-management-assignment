@@ -1,7 +1,7 @@
 import React from "react";
 import Todos from "./_components/todos";
 import { auth } from "@/server/auth";
-import { getTodos } from "../actions";
+import { getAllUsers, getTodos } from "../actions";
 import UserProfile from "@/components/user-profile";
 import { Metadata } from "next";
 
@@ -14,6 +14,7 @@ export default async function Dashboard() {
   const session = await auth();
 
   const tasks = await getTodos(session!.user.id);
+  const users = await getAllUsers(session!.user.id);
 
   return (
     <main className="py-4">
@@ -21,7 +22,7 @@ export default async function Dashboard() {
         <UserProfile user={session!.user} />
       </div>
       <div className="min-h-screen max-w-5xl mx-auto flex flex-col justify-center">
-        <Todos currentUser={session!.user!} tasks={tasks} />
+        <Todos currentUser={session!.user!} tasks={tasks} allUsers={users} />
       </div>
     </main>
   );

@@ -1,0 +1,2 @@
+ALTER TABLE "todo_task_assignments" ADD CONSTRAINT "todo_task_assignments_task_id_user_id_pk" PRIMARY KEY("task_id","user_id");--> statement-breakpoint
+ALTER TABLE "todo_task_assignments" DROP COLUMN IF EXISTS "id";

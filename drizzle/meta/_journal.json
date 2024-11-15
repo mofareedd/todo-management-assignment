@@ -57,6 +57,76 @@
       "when": 1731622510242,
       "tag": "0007_easy_jazinda",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1731628452107,
+      "tag": "0008_damp_red_ghost",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1731628837268,
+      "tag": "0009_ancient_iron_monger",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1731630752930,
+      "tag": "0010_pink_onslaught",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1731631054059,
+      "tag": "0011_cheerful_wolf_cub",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1731631099353,
+      "tag": "0012_useful_iron_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1731631265655,
+      "tag": "0013_curly_colleen_wing",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1731631362794,
+      "tag": "0014_clumsy_gorilla_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1731631556790,
+      "tag": "0015_flawless_adam_warlock",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1731631586700,
+      "tag": "0016_short_franklin_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1731669851580,
+      "tag": "0017_sloppy_gorilla_man",
+      "breakpoints": true
     }
   ]
 }

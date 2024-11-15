@@ -12,18 +12,21 @@ import {
 } from "@hello-pangea/dnd";
 
 import { User } from "next-auth";
-import { TaskType } from "@/server/db/schema";
+import { TaskWithUser, UserType } from "@/server/db/schema";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { deleteTodo, swapTasksAction, taskToggle } from "../../actions";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { CharacterAvatar } from "@/components/character-avatar";
 
 interface TodosProps {
   currentUser: User;
-  tasks: TaskType[];
+  tasks: TaskWithUser[];
+  allUsers: UserType[];
 }
-export default function Todos({ tasks, currentUser }: TodosProps) {
+export default function Todos({ tasks, currentUser, allUsers }: TodosProps) {
   const [isPending, startTransition] = useTransition();
   const [optimisticState, swapOptimistic] = useOptimistic(
     tasks,
@@ -119,18 +122,30 @@ export default function Todos({ tasks, currentUser }: TodosProps) {
                                 {task.name}
                               </span>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                startTransition(() => {
-                                  deleteTodo(task.id);
-                                });
-                              }}
-                              disabled={isPending}
-                            >
-                              <Trash2 className="h-5 w-5" />
-                            </Button>
+                            <div className="flex items-center space-x-6">
+                              <div className="flex items-center -space-x-4">
+                                {task.assigned?.length
+                                  ? task.assigned.map((a) => (
+                                      <CharacterAvatar
+                                        key={a.user_id}
+                                        username={a.user.name!.charAt(0) ?? ""}
+                                      />
+                                    ))
+                                  : null}
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  startTransition(() => {
+                                    deleteTodo(task.id);
+                                  });
+                                }}
+                                disabled={isPending}
+                              >
+                                <Trash2 className="h-5 w-5" />
+                              </Button>
+                            </div>
                           </CardContent>
                         </Card>
                       )}
@@ -143,7 +158,7 @@ export default function Todos({ tasks, currentUser }: TodosProps) {
           </Droppable>
         </DragDropContext>
 
-        <CreateTodo currentUser={currentUser} />
+        <CreateTodo currentUser={currentUser} allUsers={allUsers} />
       </div>
     </div>
   );
