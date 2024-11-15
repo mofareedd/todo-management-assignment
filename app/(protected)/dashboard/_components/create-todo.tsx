@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -12,12 +13,21 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { todoSchema, TodoSchemaInput } from "@/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Command } from "lucide-react";
+import { CheckIcon, Command as CommandIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
@@ -25,15 +35,17 @@ import { createTodo } from "../../actions";
 import { User } from "next-auth";
 import { toast } from "sonner";
 import { IconSpinner } from "@/components/spinner";
-import { useTasksStore } from "../hooks/useTasks";
+import { UserType } from "@/server/db/schema";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface CreateTodoProps {
   currentUser: User;
+  allUsers: UserType[];
 }
-export function CreateTodo({ currentUser }: CreateTodoProps) {
+export function CreateTodo({ currentUser, allUsers = [] }: CreateTodoProps) {
   const [open, setOpen] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<UserType[]>([]);
   const [isPending, startTransition] = useTransition();
-  const { addTask } = useTasksStore();
   const router = useRouter();
   const form = useForm<TodoSchemaInput>({
     resolver: zodResolver(todoSchema),
@@ -45,9 +57,12 @@ export function CreateTodo({ currentUser }: CreateTodoProps) {
 
   async function onSubmit(values: TodoSchemaInput) {
     startTransition(() => {
-      createTodo(values)
+      const usersIds: string[] = selectedUsers.length
+        ? selectedUsers.map((u) => u.id)
+        : [];
+
+      createTodo(values, usersIds)
         .then((data) => {
-          addTask(data);
           setOpen(false);
           router.refresh();
         })
@@ -82,7 +97,7 @@ export function CreateTodo({ currentUser }: CreateTodoProps) {
 
           <div className="flex items-center space-x-4">
             <div className="bg-white flex items-center justify-center p-2 w-8 rounded-lg text-xs">
-              <Command />
+              <CommandIcon />
             </div>
             <div className="bg-white flex items-center justify-center p-2 w-8 rounded-lg text-xs">
               J
@@ -90,7 +105,8 @@ export function CreateTodo({ currentUser }: CreateTodoProps) {
           </div>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      {/* <DialogContent className="sm:max-w-[425px]"> */}
+      <DialogContent className="sm:max-w-[425px] flex flex-col max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Create new Task</DialogTitle>
         </DialogHeader>
@@ -101,6 +117,7 @@ export function CreateTodo({ currentUser }: CreateTodoProps) {
               name="name"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>Task Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter your task" {...field} />
                   </FormControl>
@@ -109,9 +126,79 @@ export function CreateTodo({ currentUser }: CreateTodoProps) {
               )}
             />
 
-            <Button disabled={isPending} type="submit" className="w-full">
-              {isPending ? <IconSpinner /> : "Save Changes"}
-            </Button>
+            <Command className="overflow-hidden rounded-t-none border-t bg-transparent">
+              <CommandInput placeholder="Search user..." />
+              <CommandList>
+                <CommandEmpty>No users found.</CommandEmpty>
+                <CommandGroup className="p-2">
+                  {allUsers.map((user) => (
+                    <CommandItem
+                      key={user.id}
+                      className="flex items-center px-2"
+                      onSelect={() => {
+                        setSelectedUsers((current) => {
+                          const userIndex = current.findIndex(
+                            (selectedUser) => selectedUser.email === user.email
+                          );
+                          if (userIndex > -1) {
+                            // User is already selected, remove them
+                            return [
+                              ...current.slice(0, userIndex),
+                              ...current.slice(userIndex + 1),
+                            ];
+                          } else {
+                            // User is not selected, add them
+                            return [...current, user];
+                          }
+                        });
+                      }}
+                    >
+                      <Avatar>
+                        <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="ml-2">
+                        <p className="text-sm font-medium leading-none">
+                          {user.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                      {selectedUsers.some(
+                        (selectedUser) => selectedUser.id === user.id
+                      ) ? (
+                        <CheckIcon className="ml-auto flex h-5 w-5 text-primary" />
+                      ) : null}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+
+            <DialogFooter className="grid grid-cols-1 justify-items-center space-y-4 border-t p-4">
+              <div className="">
+                {selectedUsers.length > 0 ? (
+                  <div className="flex -space-x-2 overflow-hidden">
+                    {selectedUsers.map((user) => (
+                      <Avatar
+                        key={user.id}
+                        className="inline-block border-2 border-background"
+                      >
+                        <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Select users to add to this task.
+                  </p>
+                )}
+              </div>
+
+              <Button disabled={isPending} type="submit" className="w-full">
+                {isPending ? <IconSpinner /> : "Create Task"}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
