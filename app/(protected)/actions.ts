@@ -8,7 +8,7 @@ import {
   TaskWithUser,
   usersTable,
 } from "@/server/db/schema";
-import { and, desc, eq, max, not, or, sql } from "drizzle-orm";
+import { desc, eq, max, not, or, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 export async function getTodos(id: string): Promise<TaskWithUser[]> {
@@ -21,6 +21,7 @@ export async function getTodos(id: string): Promise<TaskWithUser[]> {
         },
       },
     },
+    where: eq(sql`DATE(${tasksTable.createdAt})`, sql`CURRENT_DATE`),
     orderBy: desc(tasksTable.order),
   });
 }
