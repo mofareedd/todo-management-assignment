@@ -71,7 +71,12 @@ export default function Todos({ tasks, currentUser, allUsers }: TodosProps) {
       </div>
 
       <div className="space-y-2">
-        <p>🗓️ Today {tasks.length}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-bold">🗓️ Today</p>
+          <span className="bg-secondary w-6 h-6 rounded-2xl flex items-center justify-center">
+            {tasks.length}
+          </span>
+        </div>
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId={"tasks"}>
             {(droppableProvided) => (
