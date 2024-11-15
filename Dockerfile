@@ -1,16 +1,49 @@
-FROM node:20-alpine as base
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+# syntax = docker/dockerfile:1
 
+# Adjust NODE_VERSION as desired
+ARG NODE_VERSION=18.18.0
+FROM node:${NODE_VERSION}-slim as base
+
+LABEL fly_launch_runtime="Next.js"
+
+# Next.js app lives here
 WORKDIR /app
 
+# Set production environment
+ENV NODE_ENV="production"
+
+# Install pnpm
+ARG PNPM_VERSION=8.7.6
+RUN npm install -g pnpm@$PNPM_VERSION
+
+
+# Throw-away build stage to reduce size of final image
+FROM base as build
+
+# Install packages needed to build node modules
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
+
+# Install node modules
 COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --prod=false
 
-RUN pnpm install
-
+# Copy application code
 COPY . .
 
-EXPOSE 3000
+# Build application
+RUN pnpm run build
 
-CMD ["pnpm", "dev"]
+# Remove development dependencies
+RUN pnpm prune --prod
+
+
+# Final stage for app image
+FROM base
+
+# Copy built application
+COPY --from=build /app /app
+
+# Start the server by default, this can be overwritten at runtime
+EXPOSE 3000
+CMD [ "pnpm", "run", "start" ]
