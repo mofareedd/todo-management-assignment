@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  nextjs-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+      args:
+        NODE_VERSION: 18.18.0
+        PNPM_VERSION: 8.7.6
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+    command: ["pnpm", "dev"]

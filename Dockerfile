@@ -16,6 +16,15 @@ ENV NODE_ENV="production"
 ARG PNPM_VERSION=8.7.6
 RUN npm install -g pnpm@$PNPM_VERSION
 
+FROM base as dev
+
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install 
+
+COPY . .
+
+EXPOSE 3000
+CMD [ "pnpm", "dev" ]
 
 # Throw-away build stage to reduce size of final image
 FROM base as build

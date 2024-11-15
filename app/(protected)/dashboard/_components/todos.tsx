@@ -60,7 +60,7 @@ export default function Todos({ tasks, currentUser, allUsers }: TodosProps) {
           <h2 className="text-4xl font-bold">
             Good Evening, {currentUser.name} 🤩
           </h2>
-          <p className="text-muted-foreground">
+          <p suppressHydrationWarning className="text-muted-foreground">
             {"It's"} {dayjs().format("dddd, D MMMM YYYY")}
           </p>
         </div>
