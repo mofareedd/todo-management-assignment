@@ -14,15 +14,22 @@ This Todo Management app is designed to allow users to create, update, and delet
 - Task management with a user-friendly interface
 
 ## Technologies Used
-- React (with Next.js for server-side rendering)
+- Next.js
 - TypeScript
 - NextAuth ( Authehntication library )
-- Zustand ( State managment )
 - Shadcn ( UI library )
 - Playwright for testing ( E2E Testing)
 - Drizzle (SQL Database ORM)
+- Docker (Deployment)
+- Fly.io (Self-hosting)
 
 ## Running the Application
+### Clone the Repository
+First, clone the repository to your local machine:
+```bash
+git clone https://github.com/mofareedd/todo-management-assignment.git todo-management-app
+cd todo-management-app
+```
 
 ### Option 1: Using `pnpm`
 1. Install dependencies:
